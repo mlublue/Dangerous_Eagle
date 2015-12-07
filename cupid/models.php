@@ -23,7 +23,7 @@ class Track{
 			$this->updated_at=$i;
 	}
 	
-	public static function all($limit = 50, $offset = 0, $OB = "TrackId", $OD = "ASC"){
+	public static function all($limit = 20, $offset = 0, $OB = "TrackId", $OD = "ASC"){
 		return self::get(null, null, $limit, $offset, $OB, $OD);
 	}
 	
@@ -55,10 +55,12 @@ class Track{
 				$this->TrackId = $new_object->TrackId;
 				$this->Album = $new_object->Album;
 				$this->updated_at = $new_object->updated_at;
+
 				return $this;		
 			}else{
 				return false;
 			}
+			echo $sQuery;
 		}
 	}
 	
@@ -66,8 +68,10 @@ class Track{
 		$sQuery = "DELETE FROM track WHERE track.TrackId = $this->TrackId";
 		return Conexion::getConexion()->query($sQuery);
 	}
-	
+
 	private static function get($id, $like, $limit, $offset, $OB, $OD){
+		$busqueda = isset($_GET['b'])? $_GET['b'] : "";
+
 		$sQuery = "SELECT track.TrackId AS 'track.TrackId', ".
 					"track.Name AS 'track.Name', ".
 					"track.AlbumId AS 'track.AlbumId', ".
@@ -85,17 +89,25 @@ class Track{
 					"artist.updated_at As 'artist.updated_at' ".
 					"FROM track INNER JOIN album ON track.AlbumId = album.AlbumId INNER JOIN artist ON album.ArtistId = artist.ArtistId ".
 					(!is_null($id)? "WHERE track.TrackId = $id " : "").
-					(!is_null($like)? "WHERE track.Name like '%$like%' " : "").
-					"ORDER BY $OB $OD LIMIT $limit OFFSET $offset";											 
+					(!is_null($busqueda)? "WHERE track.Name like '%$busqueda%' " : "No hay resultados").
+					"ORDER BY $OB $OD LIMIT $limit OFFSET $offset";		
+
 		$query = Conexion::getConexion()->query($sQuery);
+		
 		while($track = $query->fetch_assoc())
+			
 			$tracks[] = new self($track['track.TrackId'],$track['track.Name'],$track['track.Composer'],
 								$track['track.Milliseconds'],$track['track.Bytes'],$track['track.UnitPrice'],
 								new Album($track['album.AlbumId'],$track['album.Title'],
 									new Artist($track['artist.ArtistId'],$track['artist.Name'],$track['artist.updated_at']),
 										$track['album.updated_at']),
 								$track['track.updated_at']);
-		return $tracks;
+
+		if(isset($tracks)){
+			return $tracks;
+		}else{
+			echo "<h1>NO HAY RESULTADOS. PUEDES AGREGAR TU TRACK DANDO CLICK EN AGREGAR NUEVO TRACK</H1>";
+		}
 	}
 }
 
@@ -167,6 +179,7 @@ class Album{
 							new Artist($album['artist.ArtistId'],$album['artist.Name'],$album['artist.updated_at']),
 						$album['album.updated_at']);
 		return $albums;
+		echo $sQuery;
 	}
 }
 
@@ -214,6 +227,7 @@ class Artist{
 	}
 	
 	private static function get($id, $like, $limit, $offset, $OB, $OD){
+
 		$sQuery = 	"SELECT ".
 					"artist.ArtistId As 'artist.ArtistId', ".
 					"artist.Name As 'artist.Name', ".
@@ -223,6 +237,7 @@ class Artist{
 					(!is_null($like)? "WHERE artist.Name like '%$like%' " : "").
 					"ORDER BY $OB $OD LIMIT $limit OFFSET $offset";				
 		$query = Conexion::getConexion()->query($sQuery);
+
 		while($artist = $query->fetch_assoc())
 			$artists[] = new self($artist['artist.ArtistId'],$artist['artist.Name'],$artist['artist.updated_at']);
 		return $artists;

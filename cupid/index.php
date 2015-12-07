@@ -17,14 +17,23 @@
     <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <link href="style.css" rel="stylesheet">
-
-
+    
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="bootstrap/js/html5shiv.js"></script>
     <script src="bootstrap/js/respond.min.js"></script>
     <![endif]-->
-<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script> language="JavaScript" type="text/javascript" src="ajax.js"></script>
+    <script src="audiojs/audio.min.js"></script>
+    <script src="audiojs/jquery.js"></script>
+    <script>
+      audiojs.events.ready(function() {
+    var as = audiojs.createAll();
+  });</script>
+<script src="//code.jquery.com/jquery-1.11.3.min.js">
+
+</script>
+
 </head>
 <script type="text/javascript">
 $(document).ready(function(){
@@ -37,24 +46,47 @@ $(document).ready(function(){
 });
 </script>
 
+
+
 <script type="text/javascript">
 
 $(document).ready(function() {
 
     $("#enviar-btn").click(function() {
 
-        var name = $("input#name").val();
-        var message = $("textarea#message").val();
+        var name = $("input#Name").val();
+        var album = $("input#Album").val();
+         var compositor = $("input#Composer").val();
+var milisegundos = $("input#Milliseconds").val();
+var bytes= $("input#Bytes").val();
+var precio= $("input#Unitprice").val();
+        var dataString = 'Name=' + name + 'Album=' + album + 'Composer=' + compositor  'Milliseconds=' + milisegundos + 'Bytes=' + bytes+ 'Unitprice=' + precio;
+jQuery.post("models.php", {
+                        Name:Name,
+                        Album:Album;
+                        Composer:Composer;
+                        Miliseconds:Miliseconds;
+                        Bytes:Bytes;
+                        UnitPrice:UnitPrice;
 
-        var dataString = 'name=' + name + '&message=' + message;
 
+                    }, function(data, textStatus){
+                        if(data == 1){
+                            $('#res').php("Datos insertados.");
+                            $('#res').css('color','green');
+                        }
+                        else{
+                            $('#res').php("Ha ocurrido un error.");
+                            $('#res').css('color','red');
+                        }
+                    });
         $.ajax({
             type: "POST",
-            url: "addmessage.php",
+            url: "models.php",
             data: dataString,
             success: function() {
                 $("#element").hide();
-                $('#newmessage').append('<h2>Tu información ha sido recibida correctamente!</h2><table><tr><td>Nombre:</td><td>'+name+'</td></tr><tr><td>Mensaje:</td><td>'+message+'</td></tr></table>');
+                $('#newmessage').append('<h2>Tu información ha sido recibida correctamente!</h2><table><tr><td>Nombre:</td><td>'+name+'</td></tr><tr><td>Mensaje:</td><td>'+album+'</td></tr></table>');
             }
         });
         return false;
@@ -62,8 +94,35 @@ $(document).ready(function() {
 });
 </script>
 
-<body data-spy="scroll" data-target="#topnav">
+<!--<script type="text/javascript">
+$(document).ready(function(){
+    $('#content').infinitescroll({
+        navSelector: "#next:last",
+        nextSelector: "#next:last",
+        itemSelector: "#content",
+        debug: false,
+        dataType: 'html',
+    maxPage: 4,
+        path: function(index) {
+            return "index" + index + ".php";
+        }
+        // appendCallback   : false, // USE FOR PREPENDING
+    }, function(newElements, data, url){
+      // used for prepending data
+        // $(newElements).css('background-color','#ffef00');
+        // $(this).prepend(newElements);
+    });
+});
+</script>!-->
 
+
+<body data-spy="scroll" data-target="#topnav">
+<?php
+$action = 'adddb';
+include 'models.php';
+$track = isset($_GET['id'])? Track::find($_GET['id']) : Track::create(null,null,0,0,0,1);
+
+?>
 <div class="navbar navbar-color navbar-fixed-top" id="topnav">
     <div class="container">
         <div class="navbar-header" align="center">
@@ -76,44 +135,66 @@ $(document).ready(function() {
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#home">INICIO</a></li>
-                <li><a href="#services">TOP 10 DEL MES</a></li>
+                <li><a href="#services">Música del Momento</a></li>
                 <li><a href="#features">VIDEOS MÁS VISITADOS</a></li>
                 <li><a href="#portfolio"> LISTADO DE CANCIONES</a></li>
                  <li><a href="#pricing">NOTICIAS</a></li>
                  <li><a href="#" id="show" > AGREGAR NUEVO TRACK</a></li>
-<form class="navbar-form navbar-left" role="search">
-        <div class="input-group">
-          <input type="text" class="form-control" placeholder="Buscar..">
-          <span class="input-group-btn">
-        <input class="btn btn-default" type="submit" value="Buscar">
-      </span>
-        </div>
+
 <div id="element" style="display: none;">
-   <form method="post" action="">
-       <br><br><br>Nombre:<br/>
-        <input type="text" id="name" name="name" size="40" /><br/><br/>
-        Album:<br/>
-        <input name="message" id="message" rows="6" cols="40">
-        <br/><br/>
-         Compositor:<br/>
-        <input name="message" id="message" rows="6" cols="40">
-        <br/><br/>
-        Milisegundos:<br/>
-        <input name="message" id="message" rows="6" cols="40">
-        <br/><br/>
-        Bytes:<br/>
-        <input name="message" id="message" rows="6" cols="40">
-        <br/><br/>
-        Precio:<br/>
-        <input name="message" id="message" rows="6" cols="40">
-        <br/><br/>
+<form action="insertar.php" method="POST">
+<?php if(isset($track->TrackId)):?>
+    <label for="id">Id</label>
+    <br>
+    <input type="text"  <?= "value='$track->TrackId'" ?> disabled="disabled" />
+    <input type="hidden" id="id" name="id" <?= "value='$track->TrackId'" ?> />
+    <br />
+<?php endif;?>
+<label for="name">Nombre</label>
+<br>
+<input type="text" id="name" name="name" <?= "value='$track->Name'" ?> />
+<br />
+<br>
+<label for="album">Album</label>
 
-        <div style="margin-left: 376px;"><input name="submit" type="submit" value="enviar" id="enviar-btn" /></div> <div id="close"><a href="#" id="hide">cerrar</a></div>
-    </form>
+<div class="form-group">
+      <select  id="lunchBegins" class="selectpicker" data-live-search="true" data-live-search-style="begins" value="Please select an album...">
+      <?php foreach(Album::all(10000) as $album):?>
+        <br>
+    <option style="width: 200px;" <?= "value='$album->AlbumId'" ?> 
+        <?= (isset($track->TrackId)&&($album->AlbumId==$track->Album->AlbumId))?" selected ":""?>><?= utf8_encode($album->Title." (".$album->Artist->Name.")")?>
+    </option>
+
+
+    <?php endforeach;?>
+      </select>
+    </div>
+<br>
+<label for="composer">Compositor</label>
+<br>
+<input type="text" id="composer" name="composer" <?= "value='$track->Composer'" ?> />
+<br />
+<br>
+<label for="milliseconds">Milisegundos</label>
+<br>
+<input type="number" id="milliseconds" name="milliseconds" <?= "value='$track->Milliseconds'" ?> />
+<br />
+<br>
+<label for="bytes">Bytes</label>
+<br>
+<input type="number" id="bytes" name="bytes" <?= "value='$track->Bytes'" ?> />
+<br />
+<br>
+<label for="unitprice">Precio</label>
+<br>
+<input type="number" id="unitprice" name="unitprice" <?= "value='$track->UnitPrice'" ?> />
+<br />
+<br>
+<br>
+<input type="submit" value="Guardar"/> <button id="close"><a href="#" id="hide">cerrar</a></button>
+</form>
 </div>
-
-
-               
+    
 
             </ul>
 
@@ -124,6 +205,11 @@ $(document).ready(function() {
     </div>
 
 </div>
+
+
+<!--AGREGAR!-->
+
+
 
 
 <!-- Main jumbotron for a primary marketing message or call to action -->
@@ -218,19 +304,9 @@ $(document).ready(function() {
     <div class="row features">
         <div class="col-md-9 text-left">
 
-            <h2>Top</h2><h1>10</h1><h2> del mes </h2>
+            <center><h1>Música del momento</h1></center>
             <table>
-          <ol class="list-group">
-            <li > Coldplay</li>
-            <li></li>
-            <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
+              <br><br><br><br>  <center><audio src="audios/06 Read My Mind.mp3" preload="auto" /></center> </br></br></br></br> 
 
     </table>
 
@@ -276,15 +352,24 @@ $(document).ready(function() {
 
 </section>
 <section class="portfolio" id="portfolio">
-<div class="container">
+
+<center><div class="container-center ">
     <div class="row">
-        <div class="col-md-9  inner-page">
+
+        <div class="col-md-9 text-left inner-page">
            <br><br> <h2>Listado de Canciones</h2></br></br>
 
-         <?php
-include 'models.php';
-?>
-<table class="table-hover">
+<form class="navbar-form navbar-left" role="search" method="GET">
+        <div class="input-group">
+          <input type="text" name="b" class="form-control" placeholder="Buscar.."  action="#/portfolio">
+          <span class="input-group-btn">
+        <input class="btn btn-default" type="submit" value="Buscar" action="#/portfolio"><input class="btn btn-default" type="submit" value="Regresar" id="portfolio" action="index.php/#portfolio">
+      </span>
+        </div>
+
+       
+
+<table class="table table-striped">
     <tr>
         <th><b><h3>Nombre</b></h3></th>
         <th><b><h3>Album</b></h3></th>
@@ -293,7 +378,13 @@ include 'models.php';
         <th><b><h3>Tamaño</b></h3></th>
         <th></th>
     </tr>
-    <?php foreach (Track::all(1000) as $track):?>
+
+
+
+
+   <?php  
+    error_reporting(0);
+   foreach  (Track::all(1000) as $track):?>
     <tr>
         <td>
         <form class="form-inline" role="form"  action="contenido_track.php" method="GET">
@@ -304,7 +395,7 @@ include 'models.php';
             ?>
             </form>
         </td>
-        <td><?= $track->Name?></td>
+       <td><a <?= "href=track.php?id='".$track->TrackId."'" ?>><?= $track->Name?></a></td>
         <td><?= $track->Album->Title?></th>
         <td><?= $track->Album->Artist->Name?></td>
         <td><?= $track->Milliseconds/60000?></td>
@@ -313,9 +404,12 @@ include 'models.php';
     </tr>
     <?php endforeach; ?>
 
+
+
+
 </table>
                
-        </div>
+        </div></center>
     </div>
 </div>
 
@@ -423,10 +517,8 @@ include 'models.php';
     <div class="container">
         <div class="row">
             <div class="col-md-12 pricing-intro white">
-                <h2 class="page-headline large text-center">Tell your projects awesome story.</h2>
+                <h2 class="page-headline large text-center">Las noticias de música más candentes</h2>
 
-                <p class="text-center">Tell your projects awesome story. Tell your projects awesome story. Tell your
-                    projects awesome story. Tell your projects awesome story.</p>
             </div>
         </div>
     </div>
@@ -437,20 +529,15 @@ include 'models.php';
         <div class="row pricing-table">
             <div class="col-md-3">
                 <div class="panel panel-danger">
-                    <div class="panel-heading"><h3 class="text-center">DEV PLAN</h3></div>
+                    <div class="panel-heading"><h3 class="text-center">HYPSTER</h3></div>
                     <div class="panel-body text-center">
-                        <div class="pricing-circle bg-danger">$10.00</div>
+                        <div class="pricing-circle bg-danger"><img src="images/noticia1.png"></div>
 
-                        <a class="btn btn-lg btn-block btn-danger" href="#">BUY NOW!</a>
+                        <a class="btn btn-lg btn-block btn-danger" href="http://hypster.com/">Pruébalo ya</a>
 
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
+                        <li class="list-group-item">Crea tus propias lista de musica con ésta increíble aplicacion.</li>
                     </ul>
 
                 </div>
@@ -458,18 +545,15 @@ include 'models.php';
             </div>
             <div class="col-md-3">
                 <div class="panel panel-info">
-                    <div class="panel-heading"><h3 class="text-center">PRO PLAN</h3></div>
+                    <div class="panel-heading"><h3 class="text-center">SPOTIFY</h3></div>
                     <div class="panel-body text-center">
-                        <div class="pricing-circle bg-info">$10.00</div>
-                        <a class="btn btn-lg btn-block btn-info" href="#">BUY NOW!</a>
+                        <
+                        <div class="pricing-circle bg-info"><img src="images/noticia2.jpg"></div>
+                        <a class="btn btn-lg btn-block btn-info" href="https://www.spotify.com/mx/">Compralo ya</a>
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
+                        <li class="list-group-item"><i class="icon-ok text-danger"></i> A solo $3.00 el MES!</li>
+                 
                     </ul>
 
                 </div>
@@ -477,18 +561,14 @@ include 'models.php';
             </div>
             <div class="col-md-3">
                 <div class="panel panel-success">
-                    <div class="panel-heading"><h3 class="text-center">FREE PLAN</h3></div>
+                    <div class="panel-heading"><h3 class="text-center">COLDPLAY EN MEXICO</h3></div>
                     <div class="panel-body text-center">
-                        <div class="pricing-circle bg-success">$10.00</div>
-                        <a class="btn btn-lg btn-block btn-primary" href="#">BUY NOW!</a>
+                        <div class="pricing-circle bg-success"><img src="images/notici3.jpg"></div>
+                        <a class="btn btn-lg btn-block btn-primary" href="http://www.ticketmaster.com.mx/Coldplay-boletos/artist/806431">CHECA EL EVENTO YA</a>
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
+                        <li class="list-group-item">NO TE PUEDES PERDER ESTE CONCIERTO!</li>
+              
                     </ul>
 
                 </div>
@@ -496,205 +576,29 @@ include 'models.php';
             </div>
             <div class="col-md-3">
                 <div class="panel panel-warning">
-                    <div class="panel-heading"><h3 class="text-center">FREE PLAN</h3></div>
+                    <div class="panel-heading"><h3 class="text-center">REGALITOS PARA TI</h3></div>
                     <div class="panel-body text-center">
-                        <div class="pricing-circle bg-warning">$10.00</div>
-                        <a class="btn btn-lg btn-block btn-warning" href="#">BUY NOW!</a>
+                        <div class="pricing-circle bg-success"><img src="images/noticia4.jpg"></div>
+                        <a class="btn btn-lg btn-block btn-primary" href="http://www.amazon.com.mx/?tag=hydramzkw0mx-20&hvadid=79896508509&hvpos=1t1&hvexid=&hvnetw=g&hvrand=13898690292527109101&hvpone=&hvptwo=&hvqmt=e&hvdev=c&ref=pd_sl_3wp4idwd5k_e">GÁNALOS AQUÍ</a>
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Personal use</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> Unlimited projects</li>
-                        <li class="list-group-item"><i class="icon-ok text-danger"></i> 27/7 support</li>
+                        <li class="list-group-item">Productos limitados!</li>
+              
                     </ul>
 
                 </div>
 
             </div>
-        </div>
-    </div>
 
-
-</section>
-<section class="gray">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h3 class="text-center">Tell your projects awesome story.</h3>
-            </div>
-        </div>
-    </div>
-</section>
-<section class="about" id="clients">
-    <div class="dmask">
-
-        <div class="our-clients">
-            <div class="container">
-                <div class="row">
-                    <div class="client" style="background-position: 50% 27px;">
-                        <div class="client-logo">
-                            <div class="col-lg-8 col-md-8 col-sm-6 col-xs-12">
-                                <div class="clients-title">
-                                    <h3 class="title">Our <span>Clients</span></h3>
-
-                                    <div class="carousel-controls pull-right">
-                                        <a data-slide="prev" rel="crs" href="#client-carousel" class="prev btn-mini"><i
-                                                class="icon-angle-left"></i></a>
-                                        <a data-slide="next" rel="crs" href="#client-carousel" class="next btn-mini"><i
-                                                class="icon-angle-right"></i></a>
-
-                                        <div class="clearfix"></div>
-                                    </div>
-                                </div>
-                                <div class="clearfix"></div>
-                                <div class="row">
-                                    <div class="client-carousel slide" id="client-carousel">
-                                        <div class="carousel-inner">
-                                            <div class="item active">
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item animate_afc d1 animate_start">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-1.png" alt="Upportdash"></a></div>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item animate_afc d2 animate_start">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-2.png" alt="Upportdash"></a></div>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item animate_afc d3 animate_start">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-3.png" alt="Upportdash"></a></div>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item animate_afc d4 animate_start">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-4.png" alt="Upportdash"></a></div>
-                                                </div>
-                                            </div>
-                                            <div class="item">
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-5.png" alt="Upportdash"></a></div>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-4.png" alt="Upportdash"></a></div>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-3.png" alt="Upportdash"></a></div>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-6 item">
-                                                    <div class="item-inner"><a style="cursor: pointer;"><img
-                                                            src="images/logo-2.png" alt="Upportdash"></a></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                <!-- Testimonials Widget Start -->
-                                <div class="row ">
-                                    <div class="testimonials widget">
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <div class="testimonials-title">
-                                                <h3 class="title">Client <span>Testimonials</span></h3>
-
-                                                <div class="carousel-controls pull-right">
-                                                    <a data-slide="prev" rel="crs" href="#testimonials-carousel"
-                                                       class="prev btn-mini"><i class="icon-angle-left"></i></a>
-                                                    <a data-slide="next" rel="crs" href="#testimonials-carousel"
-                                                       class="next btn-mini"><i class="icon-angle-right"></i></a>
-
-                                                    <div class="clearfix"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="clearfix"></div>
-                                        <div class="testimonials-carousel slide animate_afr d5 animate_start"
-                                             id="testimonials-carousel">
-                                            <div class="carousel-inner">
-                                                <div class="item">
-                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                        <div class="testimonial item">
-                                                            <p>
-                                                                Lorem Ipsum is simply dummy text of the printing and
-                                                                typesetting industry. Lorem Ipsum has been the
-                                                                industry's standard dummy text ever since the 1500s,
-                                                                when an unknown printer took a galley of type.
-                                                            </p>
-
-                                                            <div class="testimonials-arrow">
-                                                            </div>
-                                                            <div class="author">
-                                                                <div class="testimonial-image "><img
-                                                                        src="images/team-member-1.jpg" alt=""></div>
-                                                                <div class="testimonial-author-info">
-                                                                    <a style="cursor: pointer;">Monica Sing</a> Template
-                                                                    Eden
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="item active">
-                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                        <div class="testimonial item">
-                                                            <p>
-                                                                Lorem Ipsum is simply dummy text of the printing and
-                                                                typesetting industry. Lorem Ipsum has been the
-                                                                industry's standard dummy text ever since the 1500s,
-                                                                when an unknown printer took a galley of type.
-                                                            </p>
-
-                                                            <div class="testimonials-arrow">
-                                                            </div>
-                                                            <div class="author">
-                                                                <div class="testimonial-image "><img
-                                                                        src="images/team-member-2.jpg" alt=""></div>
-                                                                <div class="testimonial-author-info">
-                                                                    <a href="#">John Doe</a> Template Eden
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="item">
-                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                        <div class="testimonial item">
-                                                            <p>
-                                                                Lorem Ipsum is simply dummy text of the printing and
-                                                                typesetting industry. Lorem Ipsum has been the
-                                                                industry's standard dummy text ever since the 1500s,
-                                                                when an unknown printer took a galley of type.
-                                                            </p>
-
-                                                            <div class="testimonials-arrow">
-                                                            </div>
-                                                            <div class="author">
-                                                                <div class="testimonial-image "><img
-                                                                        src="images/team-member-3.jpg" alt=""></div>
-                                                                <div class="testimonial-author-info">
-                                                                    <a style="cursor: pointer;">Carol Johansen</a>
-                                                                    Template Eden
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
+
             </div>
         </div>
-
     </div>
+
+
 </section>
+
 
 <section class="contact" id="contact">
 
